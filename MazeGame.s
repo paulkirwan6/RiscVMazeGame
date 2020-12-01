@@ -13,8 +13,8 @@
 lui x11, 131072     #player start position x-axis
 addi x12, x0, 52    #player start position y-axis
 jal x1, createMaze
-addi x14, x0, 8
-addi x15, x0, 15
+addi x14, x0, 13     # winning y
+addi x15, x0, 33     # winning x 
 addi x6, x0, 1       #move right
 addi x7, x0, 0b10    #move left
 addi x8, x0 0b100    #move down
@@ -115,7 +115,7 @@ moveUp:
     addi x12, x12, 4 # setting x12 to new current row
     ret
 
-#check if player is in bottom right zone
+#check if player is in bottom right zone to win
 checkWin:
     bge x11, x15, mainLoop      # x-position
     bge x12, x14, mainLoop      # y-position
