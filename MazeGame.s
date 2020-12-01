@@ -3,7 +3,11 @@ addi x12, x0, 52    #player start position y-axis
 jal x1, createMaze
 addi x6, x0, 1
 mainLoop:
-    jal x1, userInput
+    #jal x1, userInput
+    jal x1, moveRight
+    jal x1, moveRight
+    jal x1, moveRight
+    jal x1, moveRight
 	beq x0, x0, mainLoop # loop until reset asserted
 
 createMaze: 
@@ -60,18 +64,20 @@ createMaze:
 userInput:
     lui x5 0x10
     lw x4, 0xc(x5)
-
     beq x4, x6, moveRight
+    ret
 
 moveRight:
     srli x11, x11, 1
     or x10, x11, x29
     sw x10, 0(x12)
+    ret
 
 moveLeft:
     slli x11, x11, 1
     or x10, x11, x29
-    sw x10, 0(x12)    
+    sw x10, 0(x12)
+    ret
 
 moveUp:
     
