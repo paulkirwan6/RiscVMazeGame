@@ -13,8 +13,8 @@ addi x14, x0, 8
 addi x15, x0, 15
 addi x6, x0, 1       #move right
 addi x7, x0, 0b10    #move left
-addi x8, x0 0b100    #move up
-addi x9, x0 0b1000   #move down
+addi x8, x0 0b100    #move down
+addi x9, x0 0b1000   #move up
 
 # Add user to maze
 
@@ -37,6 +37,8 @@ createMaze:
     addi x21, x21, 1
     LUI x22, 561151         # row 12 (3_)
     addi x22, x22, 2047
+    LUI x23, 557056         # end point
+    addi x23, x23, 5
     # store maze design in memory
     sw x16,  60(x0)
     sw x17,  56(x0)
@@ -78,37 +80,51 @@ userInput:
     lw x4, 0xc(x5)
     beq x4, x6, moveRight
     beq x4, x7, moveLeft
+    beq x4, x8, moveDown
+    beq x4, x9, moveUp
     ret
 
 #OR the players position with the row of maze and
 moveRight:
-    srli x11, x11, 1
-    lw x3 0(x12)
-    and x10, x10, x3
-    or x10, x11, x3
+    lw x3 0(x12) # x3 = 1000100000000001
+    xor x10, x11, x3 # x10 = 10000000000000001
+    srli x11, x11, 1   # move user location in 11 by 1
+    or x10, x11, x10   # add user and maze and save in 11
     sw x10, 0(x12)              
     ret
 
 moveLeft:
-    slli x11, x11, 1
-    lw x3 0(x12)
-    and x10, x10, x3
-    or x10, x11, x3
-    sw x10, 0(x12)
+    lw x3 0(x12) # x3 = 1000100000000001
+    xor x10, x11, x3 # x10 = 10000000000000001
+    slli x11, x11, 1   # move user location in 11 by 1
+    or x10, x11, x10   # add user and maze and save in 11
+    sw x10, 0(x12)              
+    ret
+
+moveDown:
+    lw x13, -4(x12) # set destination row
+    lw x3, 0(x12)  # set current row
+    xor x3, x11, x3 # removing ourselves from current row
+    sw x3 0(x12)  # saving current empty row
+    or x13, x11, x13 # adding ourselves to new row
+    sw x13 -4(x12)  # saving new row with us in it
+    addi x12, x12, -4 # setting x12 to new current row
     ret
 
 moveUp:
-    lw x13, 0(x12)
-    addi x12, x12, 1
-    or x10, x11, x12
-    sw x10,0(x12)
-
-moveDown:
+    lw x13, 4(x12) # set destination row
+    lw x3, 0(x12)  # set current row
+    xor x3, x11, x3 # removing ourselves from current row
+    sw x3 0(x12)  # saving current empty row
+    or x13, x11, x13 # adding ourselves to new row
+    sw x13 4(x12)  # saving new row with us in it
+    addi x12, x12, 4 # setting x12 to new current row
+    ret
 
 #check if player is in bottom right zone
 checkWin:
     bge x11, x15, mainLoop      # x-position
-    #bge x12, x14, mainLoop      # y-position
+    bge x12, x14, mainLoop      # y-position
     jal x16, win
 
 # display WIN on screen and do not return to the main loop
