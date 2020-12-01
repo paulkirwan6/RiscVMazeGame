@@ -1,7 +1,8 @@
 lui x11, 131072     #player start position x-axis
 addi x12, x0, 52    #player start position y-axis
 jal x1, createMaze
-addi x6, x0, 1
+addi x6, x0, 1 #move right
+addi x7, x0, 2 #move left
 mainLoop:
     #jal x1, userInput
     jal x1, moveRight
@@ -65,6 +66,7 @@ userInput:
     lui x5 0x10
     lw x4, 0xc(x5)
     beq x4, x6, moveRight
+    beq x4, x7, moveLeft
     ret
 
 moveRight:
