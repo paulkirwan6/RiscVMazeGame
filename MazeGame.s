@@ -1,5 +1,6 @@
-# Maze Game by Paul Kirwan and Mollie Fairclough
-# Used with Vicilogic
+# Maze Game by Paul Kirwan and Mollie Fairclough Nov 2020
+# For EE451 System On Chip
+# Uses Risc V architecture and used with Vicilogic
 # Traverse through the maze from the top left to the bottom right to win
 # Hitting into walls will cause you to lose
 
@@ -20,28 +21,30 @@ addi x7, x0, 0b10    #move left
 addi x8, x0 0b100    #move down
 addi x9, x0 0b1000   #move up
 
+#Runs the whole game until win/lose
 mainLoop:
     jal x1, userInput
     jal x1, checkWin
-    beq x0, x0, mainLoop    # loop until reset asserted
+    beq x0, x0, mainLoop
 
+#Initialises maze in memory
 createMaze: 
-    addi x16, x0, -1         #top/bottom row of maze
+    addi x16, x0, -1 
     LUI x17, 524288
-    addi x17, x17, 1          #rows 2-4
+    addi x17, x17, 1 
     LUI x18, 1048575
-    addi x18, x18, 497        #row 5 (1)
+    addi x18, x18, 497   
     LUI x19, 524288
-    addi x19, x19, 129        #rows 6-8
-    LUI x20, 589823         #row 9 (2)
-    addi x20, x20, 2019        
-    LUI x21, 557056         # rows 10 & 11
+    addi x19, x19, 129    
+    LUI x20, 589823       
+    addi x20, x20, 2019   
+    LUI x21, 557056       
     addi x21, x21, 1
-    LUI x22, 561151         # row 12 (3_)
+    LUI x22, 561151       
     addi x22, x22, 2047
-    LUI x23, 557056         # end point
+    LUI x23, 557056       
     addi x23, x23, 5
-    # store maze design in memory
+
     sw x16,  60(x0)
     sw x17,  56(x0)
     sw x17,  52(x0)
@@ -58,7 +61,7 @@ createMaze:
     sw x23,  8(x0)
     sw x21,  4(x0)
     sw x16,  0(x0)
-    ret              # PC -> x1 (return address)
+    ret
 
 # Takes 16-bit user input and stores in x4
 userInput:
@@ -70,55 +73,58 @@ userInput:
     beq x4, x9, moveUp
     ret
 
-#OR the players position with the row of maze and
+# Moves user representation to the right and checks for collision
 moveRight:
-    lw x3 0(x12) # x3 = 1000100000000001
-    xor x10, x11, x3 # x10 = 10000000000000001
-    srli x11, x11, 1   # move user location in 11 by 1
-    and x13, x11, x10 # colision check
+    lw x3 0(x12)
+    xor x10, x11, x3 
+    srli x11, x11, 1   
+    and x13, x11, x10 
     bge x13, x6, lose
-    or x10, x11, x10   # add user and maze and save in 11
+    or x10, x11, x10  
     sw x10, 0(x12)              
     ret
 
+# Moves user representation to the left and checks for collision
 moveLeft:
-    lw x3 0(x12) # x3 = 1000100000000001
-    xor x10, x11, x3 # x10 = 10000000000000001
-    slli x11, x11, 1   # move user location in 11 by 1
-    and x13, x11, x10 # colision check
+    lw x3 0(x12)
+    xor x10, x11, x3
+    slli x11, x11, 1  
+    and x13, x11, x10 
     bge x13, x6, lose
-    or x10, x11, x10   # add user and maze and save in 11
+    or x10, x11, x10  
     sw x10, 0(x12)              
     ret
 
+# Moves user representation down and checks for collision
 moveDown:
-    lw x13, -4(x12) # set destination row
-    lw x3, 0(x12)  # set current row
-    and x16, x13, x11   #check if we will hit wall
-    bge x16, x6 lose #u have bonked go to jail
-    xor x3, x11, x3 # removing ourselves from current row
-    sw x3 0(x12)  # saving current empty row
-    or x13, x11, x13 # adding ourselves to new row
-    sw x13 -4(x12)  # saving new row with us in it
-    addi x12, x12, -4 # setting x12 to new current row
+    lw x13, -4(x12)
+    lw x3, 0(x12)
+    and x16, x13, x11 
+    bge x16, x6 lose 
+    xor x3, x11, x3 
+    sw x3 0(x12) 
+    or x13, x11, x13 
+    sw x13 -4(x12) 
+    addi x12, x12, -4 
     ret
 
+# Moves user representation up and checks for collision
 moveUp:
-    lw x13, 4(x12) # set destination row
-    lw x3, 0(x12)  # set current row
-    and x16, x13, x11   #check if we will hit wall
-    bge x16, x6 lose #u have bonked go to jail
-    xor x3, x11, x3 # removing ourselves from current row
-    sw x3 0(x12)  # saving current empty row
-    or x13, x11, x13 # adding ourselves to new row
-    sw x13 4(x12)  # saving new row with us in it
-    addi x12, x12, 4 # setting x12 to new current row
+    lw x13, 4(x12)
+    lw x3, 0(x12)  
+    and x16, x13, x11   
+    bge x16, x6 lose 
+    xor x3, x11, x3
+    sw x3 0(x12)  
+    or x13, x11, x13 
+    sw x13 4(x12) 
+    addi x12, x12, 4
     ret
 
-#check if player is in bottom right zone to win
+#check if player is in the win zone (bottom right)
 checkWin:
-    bge x11, x15, mainLoop      # x-position
-    bge x12, x14, mainLoop      # y-position
+    bge x11, x15, mainLoop
+    bge x12, x14, mainLoop
     jal x16, win
 
 # display WIN on screen and do not return to the main loop
@@ -149,7 +155,7 @@ win:
     sw x0, 0(x0)
 
 
-# Display lose sad face on screen :(
+# Display lose sad face on screen :( and do not return to the main loop
 lose:
     sw x0, 60(x0)
     sw x0, 56(x0)
